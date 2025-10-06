@@ -32,6 +32,8 @@ func PerformMigration(db *gorm.DB, models ...interface{}) error {
 func Up(db *gorm.DB) error {
 	models := []interface{}{
 		&model.User{},
+		&model.Duck{},
+		&model.DuckLikes{},
 	}
 
 	return PerformMigration(db, models...)
