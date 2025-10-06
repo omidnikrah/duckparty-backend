@@ -1,1 +1,1 @@
-# duckparty-backend
+# DuckParty Back-end
