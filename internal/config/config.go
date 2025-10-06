@@ -8,12 +8,12 @@ import (
 )
 
 type Config struct {
-	AppPort string
-	DBHost string
-	DBPort string
-	DBUser string
+	AppPort    string
+	DBHost     string
+	DBPort     string
+	DBUser     string
 	DBPassword string
-	DBName string
+	DBName     string
 }
 
 func LoadConfig() (*Config, error) {
@@ -21,14 +21,14 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
-	
+
 	config := &Config{
-		AppPort: os.Getenv("APP_PORT"),
-		DBHost: os.Getenv("DB_HOST"),
-		DBPort: os.Getenv("DB_PORT"),
-		DBUser: os.Getenv("DB_USER"),
+		AppPort:    os.Getenv("APP_PORT"),
+		DBHost:     os.Getenv("DB_HOST"),
+		DBPort:     os.Getenv("DB_PORT"),
+		DBUser:     os.Getenv("DB_USER"),
 		DBPassword: os.Getenv("DB_PASSWORD"),
-		DBName: os.Getenv("DB_NAME"),
+		DBName:     os.Getenv("DB_NAME"),
 	}
 
 	return config, nil
