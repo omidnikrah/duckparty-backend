@@ -10,7 +10,7 @@ import (
 func Migrate(db *gorm.DB) error {
 	err := Up(db)
 	if err != nil {
-		return fmt.Errorf("failed to up migration: %w", err)
+		return fmt.Errorf("❌ Failed to up migration: %w", err)
 	}
 
 	return nil
@@ -18,12 +18,12 @@ func Migrate(db *gorm.DB) error {
 
 func PerformMigration(db *gorm.DB, models ...interface{}) error {
 	for _, model := range models {
-		fmt.Printf("Migrating model: %T\n", model)
+		fmt.Printf("🔄 Migrating model: %T\n", model)
 		err := db.AutoMigrate(model)
 		if err != nil {
-			return fmt.Errorf("failed to migrate model %T: %w", model, err)
+			return fmt.Errorf("❌ Failed to migrate model %T: %w", model, err)
 		}
-		fmt.Printf("Successfully migrated model: %T\n", model)
+		fmt.Printf("✅ Successfully migrated model: %T\n", model)
 	}
 
 	return nil
@@ -37,4 +37,23 @@ func Up(db *gorm.DB) error {
 	}
 
 	return PerformMigration(db, models...)
+}
+
+func Down(db *gorm.DB) error {
+	models := []interface{}{
+		&model.DuckLikes{},
+		&model.Duck{},
+		&model.User{},
+	}
+
+	for _, model := range models {
+		fmt.Printf("🗑️ Dropping table for model: %T\n", model)
+		err := db.Migrator().DropTable(model)
+		if err != nil {
+			return fmt.Errorf("❌ Failed to drop table for model %T: %w", model, err)
+		}
+		fmt.Printf("✅ Successfully dropped table for model: %T\n", model)
+	}
+
+	return nil
 }
