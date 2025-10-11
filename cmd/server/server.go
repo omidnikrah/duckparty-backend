@@ -22,6 +22,6 @@ func Setup() {
 	defer database.Close(db)
 
 	router := gin.Default()
-	routes.SetupRoutes(router)
+	routes.SetupRoutes(router, db)
 	router.Run(":" + config.AppPort)
 }
