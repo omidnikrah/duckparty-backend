@@ -13,5 +13,6 @@ type Duck struct {
 	X          float64              `json:"x" gorm:"not null"`
 	Y          float64              `json:"y" gorm:"not null"`
 	Appearance types.DuckAppearance `json:"appearance" gorm:"serializer:json;type:jsonb;not null"`
+	Image      string               `json:"image" gorm:"not null"`
 	LikesCount int64                `json:"likes_count" gorm:"not null;default:0"`
 }

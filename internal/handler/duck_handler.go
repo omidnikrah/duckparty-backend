@@ -1,54 +1,60 @@
 package handler
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	dto "github.com/omidnikrah/duckparty-backend/internal/dto/duck"
-	"github.com/omidnikrah/duckparty-backend/internal/model"
-	"gorm.io/gorm"
+	duckService "github.com/omidnikrah/duckparty-backend/internal/service/duck"
 )
 
 type DuckHandler struct {
-	db          *gorm.DB
-	userHandler *UserHandler
+	duckService *duckService.DuckService
 }
 
-func NewDuckHandler(db *gorm.DB, userHandler *UserHandler) *DuckHandler {
+func NewDuckHandler(duckService *duckService.DuckService) *DuckHandler {
 	return &DuckHandler{
-		db:          db,
-		userHandler: userHandler,
+		duckService: duckService,
 	}
 }
 
 func (h *DuckHandler) CreateDuck(c *gin.Context) {
-	var duck dto.CreateDuckDTO
-	if err := c.ShouldBindJSON(&duck); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	file, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "image file is required"})
 		return
 	}
 
-	var newDuck model.Duck
+	name := c.PostForm("name")
+	email := c.PostForm("email")
+	appearanceJSON := c.PostForm("appearance")
 
-	err := h.db.Transaction(func(tx *gorm.DB) error {
-		user, err := h.userHandler.GetOrCreateUserByEmail(duck.Email, tx)
-		if err != nil {
-			return err
-		}
+	if name == "" || email == "" || appearanceJSON == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and appearance are required"})
+		return
+	}
 
-		newDuck = model.Duck{
-			OwnerID:    user.ID,
-			Name:       duck.Name,
-			Appearance: duck.Appearance,
-		}
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open uploaded file: " + err.Error()})
+		return
+	}
+	defer src.Close()
 
-		if err := tx.Create(&newDuck).Error; err != nil {
-			return err
-		}
+	fileContent, err := io.ReadAll(src)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read file content: " + err.Error()})
+		return
+	}
 
-		return nil
-	})
+	req := duckService.CreateDuckRequest{
+		Name:           name,
+		Email:          email,
+		AppearanceJSON: appearanceJSON,
+		ImageData:      fileContent,
+	}
 
+	newDuck, err := h.duckService.CreateDuck(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
