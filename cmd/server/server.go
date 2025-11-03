@@ -5,6 +5,7 @@ import (
 	"github.com/omidnikrah/duckparty-backend/internal/config"
 	"github.com/omidnikrah/duckparty-backend/internal/database"
 	"github.com/omidnikrah/duckparty-backend/internal/routes"
+	"github.com/omidnikrah/duckparty-backend/internal/storage"
 )
 
 func Setup() {
@@ -21,7 +22,12 @@ func Setup() {
 
 	defer database.Close(db)
 
+	s3Storage, err := storage.NewS3Storage(config)
+	if err != nil {
+		panic("failed to initialize S3 storage: " + err.Error())
+	}
+
 	router := gin.Default()
-	routes.SetupRoutes(router, db)
+	routes.SetupRoutes(router, db, s3Storage)
 	router.Run(":" + config.AppPort)
 }
