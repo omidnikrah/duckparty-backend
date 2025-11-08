@@ -19,14 +19,18 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, s3Storage *
 	userHandler := handler.NewUserHandler(userSvc)
 	duckHandler := handler.NewDuckHandler(duckSvc)
 
-	v1Router := router.Group("/api/")
+	v1Router := router.Group("/api")
 	v1Router.Use(middleware.ValidationErrorMiddleware())
-	v1Router.Use(middleware.AuthMiddleware(config))
 
 	v1Router.POST("/auth", userHandler.Authenticate)
 	v1Router.POST("/auth/verify", userHandler.AuthenticateVerify)
 
-	v1Router.POST("/duck", duckHandler.CreateDuck)
+	authenticated := v1Router.Group("/")
+	authenticated.Use(middleware.AuthMiddleware(config))
+
+	authenticated.POST("/duck", duckHandler.CreateDuck)
+	authenticated.PUT("/duck/:duckId/reaction/:reaction", duckHandler.ReactionToDuck)
+
 	v1Router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, World!",

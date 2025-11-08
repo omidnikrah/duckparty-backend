@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"errors"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/omidnikrah/duckparty-backend/internal/middleware"
+	"github.com/omidnikrah/duckparty-backend/internal/model"
 	duckService "github.com/omidnikrah/duckparty-backend/internal/service/duck"
 )
 
@@ -61,4 +65,32 @@ func (h *DuckHandler) CreateDuck(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, newDuck)
+}
+
+func (h *DuckHandler) ReactionToDuck(c *gin.Context) {
+	duckId, err := strconv.ParseUint(c.Param("duckId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid duck id"})
+		return
+	}
+	reaction := model.ReactionType(c.Param("reaction"))
+
+	user, _ := middleware.GetAuthUser(c)
+
+	req := duckService.ReactToDuckRequest{DuckID: uint(duckId), UserID: user.UserID, Reaction: reaction}
+
+	duck, err := h.duckService.ReactionToDuck(req)
+	if err != nil {
+		switch {
+		case errors.Is(err, duckService.ErrDuckNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		case errors.Is(err, duckService.ErrDuckAlreadyReacted):
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, duck)
 }

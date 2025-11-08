@@ -2,12 +2,18 @@ package duckService
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/omidnikrah/duckparty-backend/internal/model"
 	userService "github.com/omidnikrah/duckparty-backend/internal/service/user"
 	"github.com/omidnikrah/duckparty-backend/internal/storage"
 	"github.com/omidnikrah/duckparty-backend/internal/types"
 	"gorm.io/gorm"
+)
+
+var (
+	ErrDuckNotFound       = errors.New("duck not found")
+	ErrDuckAlreadyReacted = errors.New("duck already reacted")
 )
 
 type DuckService struct {
@@ -29,6 +35,12 @@ type CreateDuckRequest struct {
 	Email          string
 	AppearanceJSON string
 	ImageData      []byte
+}
+
+type ReactToDuckRequest struct {
+	DuckID   uint
+	UserID   uint
+	Reaction model.ReactionType
 }
 
 func (s *DuckService) CreateDuck(req CreateDuckRequest) (*model.Duck, error) {
@@ -69,4 +81,77 @@ func (s *DuckService) CreateDuck(req CreateDuckRequest) (*model.Duck, error) {
 	}
 
 	return &newDuck, nil
+}
+
+func (s *DuckService) ReactionToDuck(req ReactToDuckRequest) (*model.DuckReactions, error) {
+	reaction := model.DuckReactions{
+		DuckID:   req.DuckID,
+		UserID:   req.UserID,
+		Reaction: req.Reaction,
+	}
+
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var (
+			duck             model.Duck
+			existingReaction model.DuckReactions
+		)
+
+		if err := tx.First(&duck, req.DuckID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrDuckNotFound
+			}
+			return err
+		}
+
+		if err := tx.Where("duck_id = ? AND user_id = ?", req.DuckID, req.UserID).First(&existingReaction).Error; err == nil {
+			if existingReaction.Reaction == req.Reaction {
+				return ErrDuckAlreadyReacted
+			}
+
+			if err := tx.Delete(&existingReaction).Error; err != nil {
+				return err
+			}
+
+			updateReactionCounts(&duck, existingReaction.Reaction, -1)
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+
+		if err := tx.Create(&reaction).Error; err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return ErrDuckAlreadyReacted
+			}
+			return err
+		}
+
+		updateReactionCounts(&duck, req.Reaction, 1)
+
+		if err := tx.Save(&duck).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &reaction, nil
+}
+
+func updateReactionCounts(duck *model.Duck, reaction model.ReactionType, delta int64) {
+	switch reaction {
+	case model.ReactionLike:
+		duck.LikesCount = clampNonNegative(duck.LikesCount + delta)
+	case model.ReactionDislike:
+		duck.DislikesCount = clampNonNegative(duck.DislikesCount + delta)
+	}
+}
+
+func clampNonNegative(value int64) int64 {
+	if value < 0 {
+		return 0
+	}
+	return value
 }
