@@ -1,5 +1,6 @@
 package user_dto
 
-type CreateUserDTO struct {
+type AuthenticateUserDTO struct {
 	Email string `json:"email" binding:"required,email"`
+	OTP   string `json:"otp"`
 }

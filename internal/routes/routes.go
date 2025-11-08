@@ -2,20 +2,29 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/omidnikrah/duckparty-backend/internal/config"
 	"github.com/omidnikrah/duckparty-backend/internal/handler"
+	"github.com/omidnikrah/duckparty-backend/internal/middleware"
 	duckService "github.com/omidnikrah/duckparty-backend/internal/service/duck"
 	userService "github.com/omidnikrah/duckparty-backend/internal/service/user"
 	"github.com/omidnikrah/duckparty-backend/internal/storage"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(router *gin.Engine, db *gorm.DB, s3Storage *storage.S3Storage) {
-	userService := userService.NewService(db)
-	duckService := duckService.NewService(db, userService, s3Storage)
+func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, s3Storage *storage.S3Storage, config *config.Config) {
+	userSvc := userService.NewService(db, rdb, config)
+	duckSvc := duckService.NewService(db, userSvc, s3Storage)
 
-	duckHandler := handler.NewDuckHandler(duckService)
+	userHandler := handler.NewUserHandler(userSvc)
+	duckHandler := handler.NewDuckHandler(duckSvc)
 
 	v1Router := router.Group("/api/")
+	v1Router.Use(middleware.ValidationErrorMiddleware())
+	v1Router.Use(middleware.AuthMiddleware(config))
+
+	v1Router.POST("/auth", userHandler.Authenticate)
+	v1Router.POST("/auth/verify", userHandler.AuthenticateVerify)
 
 	v1Router.POST("/duck", duckHandler.CreateDuck)
 	v1Router.GET("/", func(c *gin.Context) {
