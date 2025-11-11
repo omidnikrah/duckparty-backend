@@ -1,6 +1,9 @@
 package server
 
 import (
+	"context"
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"github.com/omidnikrah/duckparty-backend/internal/client"
 	"github.com/omidnikrah/duckparty-backend/internal/config"
@@ -19,7 +22,6 @@ func Setup() {
 	if err != nil {
 		panic("failed to init database: " + err.Error())
 	}
-
 	defer database.Close(db)
 
 	rdb := client.NewRedisClient(config)
@@ -30,6 +32,16 @@ func Setup() {
 	if err != nil {
 		panic("failed to initialize S3 storage: " + err.Error())
 	}
+
+	cronScheduler, err := client.NewCron(context.Background(), db, slog.Default())
+	if err != nil {
+		panic("failed to initialize cron: " + err.Error())
+	}
+	defer func() {
+		if err := cronScheduler.Shutdown(); err != nil {
+			slog.Default().Error("failed to shutdown cron scheduler", "error", err)
+		}
+	}()
 
 	router := gin.Default()
 	routes.SetupRoutes(router, db, rdb, s3Storage, config)
