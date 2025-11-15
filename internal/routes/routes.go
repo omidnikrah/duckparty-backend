@@ -28,6 +28,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, s3Storage *
 	authenticated := v1Router.Group("/")
 	authenticated.Use(middleware.AuthMiddleware(config))
 
+	v1Router.GET("/ducks", duckHandler.GetDucksList)
 	authenticated.POST("/duck", duckHandler.CreateDuck)
 	authenticated.PUT("/duck/:duckId/reaction/:reaction", duckHandler.ReactionToDuck)
 

@@ -94,3 +94,14 @@ func (h *DuckHandler) ReactionToDuck(c *gin.Context) {
 
 	c.JSON(http.StatusOK, duck)
 }
+
+func (h *DuckHandler) GetDucksList(c *gin.Context) {
+	ducks, err := h.duckService.GetDucksList()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, ducks)
+}
