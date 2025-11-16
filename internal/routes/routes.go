@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/gin-gonic/gin"
 	"github.com/omidnikrah/duckparty-backend/internal/config"
 	"github.com/omidnikrah/duckparty-backend/internal/handler"
@@ -12,8 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, s3Storage *storage.S3Storage, config *config.Config) {
-	userSvc := userService.NewService(db, rdb, config)
+func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, sesClient *ses.Client, s3Storage *storage.S3Storage, config *config.Config) {
+	userSvc := userService.NewService(db, rdb, sesClient, config)
 	duckSvc := duckService.NewService(db, userSvc, s3Storage)
 
 	userHandler := handler.NewUserHandler(userSvc)

@@ -22,6 +22,7 @@ type Config struct {
 	RedisHost          string
 	RedisPassword      string
 	JWTSecret          string
+	AuthSenderEmail    string
 }
 
 func LoadConfig() (*Config, error) {
@@ -45,6 +46,7 @@ func LoadConfig() (*Config, error) {
 		RedisHost:          os.Getenv("REDIS_HOST"),
 		RedisPassword:      os.Getenv("REDIS_PASSWORD"),
 		JWTSecret:          os.Getenv("JWT_SECRET"),
+		AuthSenderEmail:    os.Getenv("AUTH_SENDER_EMAIL"),
 	}
 
 	return config, nil

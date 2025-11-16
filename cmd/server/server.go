@@ -25,8 +25,12 @@ func Setup() {
 	defer database.Close(db)
 
 	rdb := client.NewRedisClient(config)
-
 	defer rdb.Close()
+
+	sesClient, err := client.NewSESClient(config)
+	if err != nil {
+		panic("failed to initialize SES client: " + err.Error())
+	}
 
 	s3Storage, err := storage.NewS3Storage(config)
 	if err != nil {
@@ -44,6 +48,6 @@ func Setup() {
 	}()
 
 	router := gin.Default()
-	routes.SetupRoutes(router, db, rdb, s3Storage, config)
+	routes.SetupRoutes(router, db, rdb, sesClient, s3Storage, config)
 	router.Run(":" + config.AppPort)
 }

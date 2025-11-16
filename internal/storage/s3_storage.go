@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	appconfig "github.com/omidnikrah/duckparty-backend/internal/config"
@@ -19,23 +17,9 @@ type S3Storage struct {
 }
 
 func NewS3Storage(appConfig *appconfig.Config) (*S3Storage, error) {
-	var cfgOptions []func(*awsconfig.LoadOptions) error
-
-	cfgOptions = append(cfgOptions, awsconfig.WithRegion(appConfig.S3Region))
-
-	if appConfig.AWSAccessKeyID != "" && appConfig.AWSSecretAccessKey != "" {
-		cfgOptions = append(cfgOptions, awsconfig.WithCredentialsProvider(
-			credentials.NewStaticCredentialsProvider(
-				appConfig.AWSAccessKeyID,
-				appConfig.AWSSecretAccessKey,
-				"",
-			),
-		))
-	}
-
-	awsConfig, err := awsconfig.LoadDefaultConfig(context.TODO(), cfgOptions...)
+	awsConfig, err := appConfig.LoadAWSConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS config: %w", err)
+		return nil, err
 	}
 
 	client := s3.NewFromConfig(awsConfig)

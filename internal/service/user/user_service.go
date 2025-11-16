@@ -4,28 +4,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	"github.com/aws/smithy-go"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/omidnikrah/duckparty-backend/internal/config"
 	"github.com/omidnikrah/duckparty-backend/internal/model"
+	"github.com/omidnikrah/duckparty-backend/internal/templates"
 	"github.com/omidnikrah/duckparty-backend/internal/utils"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-const authTokenTTL = 30 * 24 * time.Hour // 30 days
+const (
+	authTokenTTL    = 30 * 24 * time.Hour // 30 days
+	otpEmailSubject = "DuckParty OTP Code"
+	otpEmailCharset = "UTF-8"
+)
 
 type UserService struct {
-	db     *gorm.DB
-	rdb    *redis.Client
-	config *config.Config
+	db        *gorm.DB
+	rdb       *redis.Client
+	config    *config.Config
+	sesClient *ses.Client
 }
 
-func NewService(db *gorm.DB, rdb *redis.Client, config *config.Config) *UserService {
-	return &UserService{db: db, rdb: rdb, config: config}
+func NewService(db *gorm.DB, rdb *redis.Client, sesClient *ses.Client, config *config.Config) *UserService {
+	return &UserService{db: db, rdb: rdb, sesClient: sesClient, config: config}
 }
 
 func (s *UserService) GetOrCreateUserByEmail(email string, tx *gorm.DB) (*model.User, error) {
@@ -55,6 +66,10 @@ func (s *UserService) SendOTP(email string, ctx context.Context) error {
 	key := fmt.Sprintf("otp:user:%s", email)
 
 	if err := s.rdb.Set(ctx, key, otpCode, 2*time.Minute).Err(); err != nil {
+		return err
+	}
+
+	if err := s.sendOtpEmail(ctx, email, otpCode); err != nil {
 		return err
 	}
 
@@ -101,4 +116,67 @@ func (s *UserService) AuthenticateUser(email string, otp string, ctx context.Con
 	}
 
 	return user, tokenString, nil
+}
+
+func (s *UserService) sendOtpEmail(ctx context.Context, email string, otpCode int) error {
+	logger := slog.Default().With("email", email)
+
+	htmlBody, err := templates.GenerateOTPEmailHTML(otpCode)
+	if err != nil {
+		return fmt.Errorf("failed to render HTML email: %w", err)
+	}
+
+	textBody, err := templates.GenerateOTPEmailText(otpCode)
+	if err != nil {
+		return fmt.Errorf("failed to render text email: %w", err)
+	}
+
+	input := &ses.SendEmailInput{
+		Destination: &types.Destination{
+			ToAddresses: []string{email},
+		},
+		Message: &types.Message{
+			Body: &types.Body{
+				Html: &types.Content{
+					Charset: aws.String(otpEmailCharset),
+					Data:    aws.String(htmlBody),
+				},
+				Text: &types.Content{
+					Charset: aws.String(otpEmailCharset),
+					Data:    aws.String(textBody),
+				},
+			},
+			Subject: &types.Content{
+				Charset: aws.String(otpEmailCharset),
+				Data:    aws.String(otpEmailSubject),
+			},
+		},
+		Source: aws.String(s.config.AuthSenderEmail),
+	}
+
+	_, err = s.sesClient.SendEmail(ctx, input)
+	if err != nil {
+		var apiErr *types.MessageRejected
+		var domainErr *types.MailFromDomainNotVerifiedException
+		var configErr *types.ConfigurationSetDoesNotExistException
+
+		switch {
+		case errors.As(err, &apiErr):
+			logger.Error("SES message rejected", "error", err.Error())
+		case errors.As(err, &domainErr):
+			logger.Error("SES sender domain not verified", "error", err.Error())
+		case errors.As(err, &configErr):
+			logger.Error("SES configuration set does not exist", "error", err.Error())
+		default:
+			if ae, ok := err.(*smithy.OperationError); ok {
+				logger.Error("SES send email failed", "service", ae.Service(), "operation", ae.Operation(), "error", err.Error())
+			} else {
+				logger.Error("SES send email failed", "error", err.Error())
+			}
+		}
+
+		return fmt.Errorf("failed to send email: %w", err)
+	}
+
+	return nil
 }

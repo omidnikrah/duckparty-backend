@@ -27,6 +27,7 @@ func (h *UserHandler) Authenticate(c *gin.Context) {
 	otpErr := h.userService.SendOTP(requestBody.Email, c.Request.Context())
 	if otpErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": otpErr.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
