@@ -1,0 +1,362 @@
+basePath: /api
+definitions:
+  AccessoryType:
+    enum:
+    - flower_crown
+    - king_crown
+    - superman_cape
+    - vespa_helmet
+    type: string
+    x-enum-varnames:
+    - AccessoryFlowerCrown
+    - AccessoryKingCrown
+    - AccessorySupermanCape
+    - AccessoryVespaHelmet
+  AuthenticateRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      otp:
+        example: "123456"
+        type: string
+    required:
+    - email
+    type: object
+  AuthenticateResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/UserResponse'
+    type: object
+  DuckAppearance:
+    properties:
+      accessories:
+        items:
+          $ref: '#/definitions/AccessoryType'
+        type: array
+      skin:
+        $ref: '#/definitions/SkinType'
+    type: object
+  DuckReactionResponse:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      duck:
+        $ref: '#/definitions/DuckResponse'
+      duck_id:
+        example: 1
+        type: integer
+      reaction:
+        allOf:
+        - $ref: '#/definitions/ReactionType'
+        enum:
+        - like
+        - dislike
+        example: like
+      user:
+        $ref: '#/definitions/DuckUserResponse'
+      user_id:
+        example: 1
+        type: integer
+    type: object
+  DuckResponse:
+    properties:
+      appearance:
+        $ref: '#/definitions/DuckAppearance'
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      dislikes_count:
+        example: 2
+        type: integer
+      id:
+        example: 1
+        type: integer
+      image:
+        example: https://example.com/image.jpg
+        type: string
+      likes_count:
+        example: 10
+        type: integer
+      name:
+        example: Ducky
+        type: string
+      owner:
+        $ref: '#/definitions/DuckUserResponse'
+      owner_id:
+        example: 1
+        type: integer
+      rank:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      x:
+        example: 100.5
+        type: number
+      "y":
+        example: 200.5
+        type: number
+    type: object
+  DuckUserResponse:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      display_name:
+        example: John Doe
+        type: string
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+  ReactionType:
+    enum:
+    - like
+    - dislike
+    type: string
+    x-enum-varnames:
+    - ReactionLike
+    - ReactionDislike
+  SkinType:
+    enum:
+    - giraffe
+    - lgbt
+    - superman
+    type: string
+    x-enum-varnames:
+    - SkinGiraffe
+    - SkinLGBT
+    - SkinSuperman
+  UserResponse:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      display_name:
+        example: John Doe
+        type: string
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+host: localhost:4030
+info:
+  contact: {}
+  description: API for Duck Party backend service
+  termsOfService: http://swagger.io/terms/
+  title: Duck Party API
+  version: "1.0"
+paths:
+  /auth:
+    post:
+      consumes:
+      - application/json
+      description: Sends a one-time password (OTP) to the user's email address for
+        authentication
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/AuthenticateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send OTP to user email
+      tags:
+      - auth
+  /auth/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the OTP code and returns user information along with JWT
+        token
+      parameters:
+      - description: Email and OTP code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/AuthenticateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User and token
+          schema:
+            $ref: '#/definitions/AuthenticateResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify OTP and authenticate user
+      tags:
+      - auth
+  /duck:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new duck with image, name, email, and appearance data
+      parameters:
+      - description: Duck image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Duck name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Owner email address
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Duck appearance JSON
+        in: formData
+        name: appearance
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created duck
+          schema:
+            $ref: '#/definitions/DuckResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new duck
+      tags:
+      - ducks
+  /duck/{duckId}/reaction/{reaction}:
+    put:
+      consumes:
+      - application/json
+      description: Add a like or dislike reaction to a duck
+      parameters:
+      - description: Duck ID
+        in: path
+        name: duckId
+        required: true
+        type: string
+      - description: Reaction type (like or dislike)
+        enum:
+        - like
+        - dislike
+        in: path
+        name: reaction
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reaction created
+          schema:
+            $ref: '#/definitions/DuckReactionResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Duck not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Duck already reacted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: React to a duck
+      tags:
+      - ducks
+  /ducks:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all ducks ordered by creation date
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of ducks
+          schema:
+            items:
+              $ref: '#/definitions/DuckResponse'
+            type: array
+        "500":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get list of ducks
+      tags:
+      - ducks
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/gin-gonic/gin"
+	_ "github.com/omidnikrah/duckparty-backend/docs"
 	"github.com/omidnikrah/duckparty-backend/internal/config"
 	"github.com/omidnikrah/duckparty-backend/internal/handler"
 	"github.com/omidnikrah/duckparty-backend/internal/middleware"
@@ -10,6 +11,8 @@ import (
 	userService "github.com/omidnikrah/duckparty-backend/internal/service/user"
 	"github.com/omidnikrah/duckparty-backend/internal/storage"
 	"github.com/redis/go-redis/v9"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 )
 
@@ -38,4 +41,6 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, sesClient *
 			"message": "Hello, World!",
 		})
 	})
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

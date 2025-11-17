@@ -1,7 +1,7 @@
 package types
 
-type SkinType string
-type AccessoryType string
+type SkinType string      // @name SkinType
+type AccessoryType string // @name AccessoryType
 
 const (
 	SkinGiraffe  SkinType = "giraffe"
@@ -19,4 +19,4 @@ const (
 type DuckAppearance struct {
 	Skin        SkinType        `json:"skin"`
 	Accessories []AccessoryType `json:"accessories"`
-}
+} // @name DuckAppearance

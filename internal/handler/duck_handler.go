@@ -22,6 +22,21 @@ func NewDuckHandler(duckService *duckService.DuckService) *DuckHandler {
 	}
 }
 
+// CreateDuck godoc
+// @Summary      Create a new duck
+// @Description  Creates a new duck with image, name, email, and appearance data
+// @Tags         ducks
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        image       formData  file    true   "Duck image file"
+// @Param        name        formData  string  true   "Duck name"
+// @Param        email       formData  string  true   "Owner email address"
+// @Param        appearance  formData  string  true   "Duck appearance JSON"
+// @Success      200         {object}  duck_dto.DuckResponse  "Created duck"
+// @Failure      400         {object}  map[string]string  "Error message"
+// @Failure      500         {object}  map[string]string  "Error message"
+// @Router       /duck [post]
 func (h *DuckHandler) CreateDuck(c *gin.Context) {
 	file, err := c.FormFile("image")
 	if err != nil {
@@ -67,6 +82,21 @@ func (h *DuckHandler) CreateDuck(c *gin.Context) {
 	c.JSON(http.StatusOK, newDuck)
 }
 
+// ReactionToDuck godoc
+// @Summary      React to a duck
+// @Description  Add a like or dislike reaction to a duck
+// @Tags         ducks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        duckId     path      string  true   "Duck ID"
+// @Param        reaction   path      string  true   "Reaction type (like or dislike)"  Enums(like, dislike)
+// @Success      200        {object}  duck_dto.DuckReactionResponse  "Reaction created"
+// @Failure      400        {object}  map[string]string    "Error message"
+// @Failure      404        {object}  map[string]string    "Duck not found"
+// @Failure      409        {object}  map[string]string    "Duck already reacted"
+// @Failure      500        {object}  map[string]string    "Error message"
+// @Router       /duck/{duckId}/reaction/{reaction} [put]
 func (h *DuckHandler) ReactionToDuck(c *gin.Context) {
 	duckId, err := strconv.ParseUint(c.Param("duckId"), 10, 64)
 	if err != nil {
@@ -95,6 +125,15 @@ func (h *DuckHandler) ReactionToDuck(c *gin.Context) {
 	c.JSON(http.StatusOK, duck)
 }
 
+// GetDucksList godoc
+// @Summary      Get list of ducks
+// @Description  Returns a list of all ducks ordered by creation date
+// @Tags         ducks
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   duck_dto.DuckResponse  "List of ducks"
+// @Failure      500  {object}  map[string]string  "Error message"
+// @Router       /ducks [get]
 func (h *DuckHandler) GetDucksList(c *gin.Context) {
 	ducks, err := h.duckService.GetDucksList()
 

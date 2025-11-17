@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type ReactionType string
+type ReactionType string // @name ReactionType
 
 const (
 	ReactionLike    ReactionType = "like"

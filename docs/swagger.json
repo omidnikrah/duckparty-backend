@@ -1,0 +1,529 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for Duck Party backend service",
+        "title": "Duck Party API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:4030",
+    "basePath": "/api",
+    "paths": {
+        "/auth": {
+            "post": {
+                "description": "Sends a one-time password (OTP) to the user's email address for authentication",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Send OTP to user email",
+                "parameters": [
+                    {
+                        "description": "Email address",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AuthenticateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify": {
+            "post": {
+                "description": "Verifies the OTP code and returns user information along with JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify OTP and authenticate user",
+                "parameters": [
+                    {
+                        "description": "Email and OTP code",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AuthenticateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User and token",
+                        "schema": {
+                            "$ref": "#/definitions/AuthenticateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/duck": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new duck with image, name, email, and appearance data",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ducks"
+                ],
+                "summary": "Create a new duck",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Duck image file",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Duck name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Owner email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Duck appearance JSON",
+                        "name": "appearance",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created duck",
+                        "schema": {
+                            "$ref": "#/definitions/DuckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/duck/{duckId}/reaction/{reaction}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a like or dislike reaction to a duck",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ducks"
+                ],
+                "summary": "React to a duck",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Duck ID",
+                        "name": "duckId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "like",
+                            "dislike"
+                        ],
+                        "type": "string",
+                        "description": "Reaction type (like or dislike)",
+                        "name": "reaction",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reaction created",
+                        "schema": {
+                            "$ref": "#/definitions/DuckReactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Duck not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Duck already reacted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ducks": {
+            "get": {
+                "description": "Returns a list of all ducks ordered by creation date",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ducks"
+                ],
+                "summary": "Get list of ducks",
+                "responses": {
+                    "200": {
+                        "description": "List of ducks",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/DuckResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "AccessoryType": {
+            "type": "string",
+            "enum": [
+                "flower_crown",
+                "king_crown",
+                "superman_cape",
+                "vespa_helmet"
+            ],
+            "x-enum-varnames": [
+                "AccessoryFlowerCrown",
+                "AccessoryKingCrown",
+                "AccessorySupermanCape",
+                "AccessoryVespaHelmet"
+            ]
+        },
+        "AuthenticateRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "otp": {
+                    "type": "string",
+                    "example": "123456"
+                }
+            }
+        },
+        "AuthenticateResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "user": {
+                    "$ref": "#/definitions/UserResponse"
+                }
+            }
+        },
+        "DuckAppearance": {
+            "type": "object",
+            "properties": {
+                "accessories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AccessoryType"
+                    }
+                },
+                "skin": {
+                    "$ref": "#/definitions/SkinType"
+                }
+            }
+        },
+        "DuckReactionResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "duck": {
+                    "$ref": "#/definitions/DuckResponse"
+                },
+                "duck_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "reaction": {
+                    "enum": [
+                        "like",
+                        "dislike"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ReactionType"
+                        }
+                    ],
+                    "example": "like"
+                },
+                "user": {
+                    "$ref": "#/definitions/DuckUserResponse"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "DuckResponse": {
+            "type": "object",
+            "properties": {
+                "appearance": {
+                    "$ref": "#/definitions/DuckAppearance"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "dislikes_count": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "image": {
+                    "type": "string",
+                    "example": "https://example.com/image.jpg"
+                },
+                "likes_count": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Ducky"
+                },
+                "owner": {
+                    "$ref": "#/definitions/DuckUserResponse"
+                },
+                "owner_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "rank": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "x": {
+                    "type": "number",
+                    "example": 100.5
+                },
+                "y": {
+                    "type": "number",
+                    "example": 200.5
+                }
+            }
+        },
+        "DuckUserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "display_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                }
+            }
+        },
+        "ReactionType": {
+            "type": "string",
+            "enum": [
+                "like",
+                "dislike"
+            ],
+            "x-enum-varnames": [
+                "ReactionLike",
+                "ReactionDislike"
+            ]
+        },
+        "SkinType": {
+            "type": "string",
+            "enum": [
+                "giraffe",
+                "lgbt",
+                "superman"
+            ],
+            "x-enum-varnames": [
+                "SkinGiraffe",
+                "SkinLGBT",
+                "SkinSuperman"
+            ]
+        },
+        "UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "display_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

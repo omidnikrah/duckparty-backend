@@ -16,6 +16,16 @@ func NewUserHandler(userService *userService.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
+// Authenticate godoc
+// @Summary      Send OTP to user email
+// @Description  Sends a one-time password (OTP) to the user's email address for authentication
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      user_dto.AuthenticateUserDTO  true  "Email address"
+// @Success      200      {object}  map[string]string            "Success message"
+// @Failure      400      {object}  map[string]string            "Error message"
+// @Router       /auth [post]
 func (h *UserHandler) Authenticate(c *gin.Context) {
 	var requestBody user_dto.AuthenticateUserDTO
 
@@ -35,6 +45,16 @@ func (h *UserHandler) Authenticate(c *gin.Context) {
 	})
 }
 
+// AuthenticateVerify godoc
+// @Summary      Verify OTP and authenticate user
+// @Description  Verifies the OTP code and returns user information along with JWT token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      user_dto.AuthenticateUserDTO  true  "Email and OTP code"
+// @Success      200      {object}  user_dto.AuthenticateResponse  "User and token"
+// @Failure      400      {object}  map[string]string            "Error message"
+// @Router       /auth/verify [post]
 func (h *UserHandler) AuthenticateVerify(c *gin.Context) {
 	var requestBody user_dto.AuthenticateUserDTO
 
