@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -160,22 +161,35 @@ func (s *UserService) sendOtpEmail(ctx context.Context, email string, otpCode in
 		var domainErr *types.MailFromDomainNotVerifiedException
 		var configErr *types.ConfigurationSetDoesNotExistException
 
+		var userErr error
+
 		switch {
 		case errors.As(err, &apiErr):
 			logger.Error("SES message rejected", "error", err.Error())
+			errMsg := err.Error()
+			if strings.Contains(errMsg, "not verified") {
+				userErr = errors.New("email address could not be verified. Please check your email address and try again")
+			} else if strings.Contains(errMsg, "rate") || strings.Contains(errMsg, "throttl") {
+				userErr = errors.New("too many requests. Please try again in a few minutes")
+			} else {
+				userErr = errors.New("unable to send email. Please check your email address and try again")
+			}
 		case errors.As(err, &domainErr):
 			logger.Error("SES sender domain not verified", "error", err.Error())
+			userErr = errors.New("email service is temporarily unavailable. Please try again later")
 		case errors.As(err, &configErr):
 			logger.Error("SES configuration set does not exist", "error", err.Error())
+			userErr = errors.New("email service is temporarily unavailable. Please try again later")
 		default:
 			if ae, ok := err.(*smithy.OperationError); ok {
 				logger.Error("SES send email failed", "service", ae.Service(), "operation", ae.Operation(), "error", err.Error())
 			} else {
 				logger.Error("SES send email failed", "error", err.Error())
 			}
+			userErr = errors.New("unable to send email. Please try again later")
 		}
 
-		return fmt.Errorf("failed to send email: %w", err)
+		return userErr
 	}
 
 	return nil
