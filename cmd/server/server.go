@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/omidnikrah/duckparty-backend/internal/client"
 	"github.com/omidnikrah/duckparty-backend/internal/config"
@@ -48,6 +49,13 @@ func Setup() {
 	}()
 
 	router := gin.Default()
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AddAllowHeaders("Authorization")
+	router.Use(cors.New(corsConfig))
+
 	routes.SetupRoutes(router, db, rdb, sesClient, s3Storage, config)
+
 	router.Run(":" + config.AppPort)
 }
