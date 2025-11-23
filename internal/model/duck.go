@@ -1,12 +1,17 @@
 package model
 
 import (
+	"time"
+
 	"github.com/omidnikrah/duckparty-backend/internal/types"
 	"gorm.io/gorm"
 )
 
 type Duck struct {
-	gorm.Model
+	ID            uint                 `json:"id" gorm:"primarykey"`
+	CreatedAt     time.Time            `json:"created_at"`
+	UpdatedAt     time.Time            `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt       `json:"deleted_at,omitempty" gorm:"index"`
 	OwnerID       uint                 `json:"owner_id" gorm:"not null;index"`
 	Owner         User                 `json:"owner" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Name          string               `json:"name" gorm:"not null"`
