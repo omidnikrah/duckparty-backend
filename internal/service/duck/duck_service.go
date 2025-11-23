@@ -84,19 +84,15 @@ func (s *DuckService) CreateDuck(req CreateDuckRequest) (*model.Duck, error) {
 }
 
 func (s *DuckService) ReactionToDuck(req ReactToDuckRequest) (*model.DuckReactions, error) {
-	reaction := model.DuckReactions{
-		DuckID:   req.DuckID,
-		UserID:   req.UserID,
-		Reaction: req.Reaction,
-	}
+	var (
+		reaction model.DuckReactions
+		duck     model.Duck
+	)
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		var (
-			duck             model.Duck
-			existingReaction model.DuckReactions
-		)
+		var existingReaction model.DuckReactions
 
-		if err := tx.First(&duck, req.DuckID).Error; err != nil {
+		if err := tx.Preload("Owner").First(&duck, req.DuckID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return ErrDuckNotFound
 			}
@@ -117,6 +113,12 @@ func (s *DuckService) ReactionToDuck(req ReactToDuckRequest) (*model.DuckReactio
 			return err
 		}
 
+		reaction = model.DuckReactions{
+			DuckID:   req.DuckID,
+			UserID:   req.UserID,
+			Reaction: req.Reaction,
+		}
+
 		if err := tx.Create(&reaction).Error; err != nil {
 			if errors.Is(err, gorm.ErrDuplicatedKey) {
 				return ErrDuckAlreadyReacted
@@ -129,6 +131,8 @@ func (s *DuckService) ReactionToDuck(req ReactToDuckRequest) (*model.DuckReactio
 		if err := tx.Save(&duck).Error; err != nil {
 			return err
 		}
+
+		reaction.Duck = duck
 
 		return nil
 	})
