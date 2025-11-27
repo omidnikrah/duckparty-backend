@@ -31,24 +31,24 @@ func NewDuckHandler(duckService *duckService.DuckService) *DuckHandler {
 // @Security     BearerAuth
 // @Param        image       formData  file    true   "Duck image file"
 // @Param        name        formData  string  true   "Duck name"
-// @Param        email       formData  string  true   "Owner email address"
 // @Param        appearance  formData  string  true   "Duck appearance JSON"
 // @Success      200         {object}  duck_dto.DuckResponse  "Created duck"
 // @Failure      400         {object}  map[string]string  "Error message"
 // @Failure      500         {object}  map[string]string  "Error message"
 // @Router       /duck [post]
 func (h *DuckHandler) CreateDuck(c *gin.Context) {
+	name := c.PostForm("name")
+	appearanceJSON := c.PostForm("appearance")
+
+	user, _ := middleware.GetAuthUser(c)
+
 	file, err := c.FormFile("image")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "image file is required"})
 		return
 	}
 
-	name := c.PostForm("name")
-	email := c.PostForm("email")
-	appearanceJSON := c.PostForm("appearance")
-
-	if name == "" || email == "" || appearanceJSON == "" {
+	if name == "" || appearanceJSON == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and appearance are required"})
 		return
 	}
@@ -68,7 +68,7 @@ func (h *DuckHandler) CreateDuck(c *gin.Context) {
 
 	req := duckService.CreateDuckRequest{
 		Name:           name,
-		Email:          email,
+		Email:          user.Email,
 		AppearanceJSON: appearanceJSON,
 		ImageData:      fileContent,
 	}

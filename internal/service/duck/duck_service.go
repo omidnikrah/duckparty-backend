@@ -73,6 +73,10 @@ func (s *DuckService) CreateDuck(req CreateDuckRequest) (*model.Duck, error) {
 			return err
 		}
 
+		if err := tx.Preload("Owner").First(&newDuck, newDuck.ID).Error; err != nil {
+			return err
+		}
+
 		return nil
 	})
 
