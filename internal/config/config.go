@@ -21,6 +21,7 @@ type Config struct {
 	AWSSecretAccessKey string
 	RedisHost          string
 	RedisPassword      string
+	RedisPort          string
 	JWTSecret          string
 	AuthSenderEmail    string
 }
@@ -44,6 +45,7 @@ func LoadConfig() (*Config, error) {
 		AWSAccessKeyID:     os.Getenv("AWS_ACCESS_KEY_ID"),
 		AWSSecretAccessKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		RedisHost:          os.Getenv("REDIS_HOST"),
+		RedisPort:          os.Getenv("REDIS_PORT"),
 		RedisPassword:      os.Getenv("REDIS_PASSWORD"),
 		JWTSecret:          os.Getenv("JWT_SECRET"),
 		AuthSenderEmail:    os.Getenv("AUTH_SENDER_EMAIL"),
