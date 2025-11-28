@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+LICENSE
+# Note: docs/ is needed for swagger - don't exclude it
+
+# Build artifacts
+tmp/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files (use docker-compose env vars instead)
+.env
+.env.local
+.env.*.local
+
+# Test files
+*_test.go
+test/
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
