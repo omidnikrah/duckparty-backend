@@ -23,6 +23,7 @@ type Config struct {
 	RedisPort          string
 	JWTSecret          string
 	AuthSenderEmail    string
+	ApiPrefix          string
 }
 
 func LoadConfig() (*Config, error) {
@@ -30,6 +31,7 @@ func LoadConfig() (*Config, error) {
 
 	config := &Config{
 		AppPort:            os.Getenv("APP_PORT"),
+		ApiPrefix:          os.Getenv("API_PREFIX"),
 		DBHost:             os.Getenv("DB_HOST"),
 		DBPort:             os.Getenv("DB_PORT"),
 		DBUser:             os.Getenv("DB_USER"),

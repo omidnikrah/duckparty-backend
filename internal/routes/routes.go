@@ -23,7 +23,9 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, sesClient *
 	userHandler := handler.NewUserHandler(userSvc)
 	duckHandler := handler.NewDuckHandler(duckSvc)
 
-	v1Router := router.Group("/api")
+	apiRouter := router.Group(config.ApiPrefix)
+
+	v1Router := apiRouter.Group("/v1")
 	v1Router.Use(middleware.ValidationErrorMiddleware())
 
 	v1Router.POST("/auth", middleware.RateLimit(middleware.AuthRateLimit), userHandler.Authenticate)
