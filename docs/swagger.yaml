@@ -241,11 +241,6 @@ paths:
         name: name
         required: true
         type: string
-      - description: Owner email address
-        in: formData
-        name: email
-        required: true
-        type: string
       - description: Duck appearance JSON
         in: formData
         name: appearance

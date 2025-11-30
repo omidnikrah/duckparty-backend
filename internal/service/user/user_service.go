@@ -194,3 +194,17 @@ func (s *UserService) sendOtpEmail(ctx context.Context, email string, otpCode in
 
 	return nil
 }
+
+func (s *UserService) UpdateName(name string, userId uint) (model.User, error) {
+	var user model.User
+	err := s.db.Model(&model.User{}).Where("id = ?", userId).Update("display_name", name).Error
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if err := s.db.Where("id = ?", userId).First(&user).Error; err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
+}

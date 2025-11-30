@@ -140,13 +140,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Owner email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "Duck appearance JSON",
                         "name": "appearance",
                         "in": "formData",

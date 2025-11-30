@@ -19,3 +19,7 @@ type UserResponse struct {
 	Email       string    `json:"email" example:"user@example.com"`
 	DisplayName string    `json:"display_name" example:"John Doe"`
 } // @name UserResponse
+
+type UpdateNameDTO struct {
+	Name string `json:"name" binding:"required"`
+} // @name UpdateNameRequest
