@@ -208,3 +208,14 @@ func (s *UserService) UpdateName(name string, userId uint) (model.User, error) {
 
 	return user, nil
 }
+
+func (s *UserService) GetUser(userId uint) (model.User, error) {
+	var user model.User
+
+	err := s.db.Where("id = ?", userId).First(&user).Error
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
+}

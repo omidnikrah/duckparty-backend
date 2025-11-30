@@ -94,3 +94,17 @@ func (h *UserHandler) UpdateName(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"user": updatedUser})
 }
+
+func (h *UserHandler) GetMeUser(c *gin.Context) {
+	authUser, _ := middleware.GetAuthUser(c)
+
+	meUser, err := h.userService.GetUser(authUser.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": meUser,
+	})
+}
