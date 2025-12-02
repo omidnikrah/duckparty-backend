@@ -139,6 +139,18 @@ definitions:
     - SkinGiraffe
     - SkinLGBT
     - SkinSuperman
+  UpdateNameRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  UserInfoResponse:
+    properties:
+      user:
+        $ref: '#/definitions/UserResponse'
+    type: object
   UserResponse:
     properties:
       created_at:
@@ -348,6 +360,59 @@ paths:
       summary: Get list of ducks
       tags:
       - ducks
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Returns the information of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User information
+          schema:
+            $ref: '#/definitions/UserInfoResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user information
+      tags:
+      - user
+  /user/change-name:
+    put:
+      consumes:
+      - application/json
+      description: Updates the display name of the authenticated user
+      parameters:
+      - description: New display name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateNameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user
+          schema:
+            $ref: '#/definitions/UserInfoResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user display name
+      tags:
+      - user
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

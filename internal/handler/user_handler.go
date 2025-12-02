@@ -76,6 +76,17 @@ func (h *UserHandler) AuthenticateVerify(c *gin.Context) {
 	})
 }
 
+// UpdateName godoc
+// @Summary      Update user display name
+// @Description  Updates the display name of the authenticated user
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request  body      user_dto.UpdateNameDTO  true  "New display name"
+// @Success      200      {object}  user_dto.UserInfoResponse  "Updated user"
+// @Failure      400      {object}  map[string]string            "Error message"
+// @Router       /user/change-name [put]
 func (h *UserHandler) UpdateName(c *gin.Context) {
 	var requestBody user_dto.UpdateNameDTO
 
@@ -95,6 +106,16 @@ func (h *UserHandler) UpdateName(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": updatedUser})
 }
 
+// GetMeUser godoc
+// @Summary      Get current user information
+// @Description  Returns the information of the currently authenticated user
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200      {object}  user_dto.UserInfoResponse  "User information"
+// @Failure      400      {object}  map[string]string            "Error message"
+// @Router       /user [get]
 func (h *UserHandler) GetMeUser(c *gin.Context) {
 	authUser, _ := middleware.GetAuthUser(c)
 

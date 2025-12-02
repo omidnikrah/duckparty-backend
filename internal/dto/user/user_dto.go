@@ -23,3 +23,7 @@ type UserResponse struct {
 type UpdateNameDTO struct {
 	Name string `json:"name" binding:"required"`
 } // @name UpdateNameRequest
+
+type UserInfoResponse struct {
+	User UserResponse `json:"user"`
+} // @name UserInfoResponse
