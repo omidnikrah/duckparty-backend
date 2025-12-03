@@ -13,9 +13,9 @@ type AuthenticateResponse struct {
 } // @name AuthenticateResponse
 
 type UserResponse struct {
-	ID          uint      `json:"id" example:"1"`
-	CreatedAt   time.Time `json:"created_at" example:"2024-01-01T00:00:00Z"`
-	UpdatedAt   time.Time `json:"updated_at" example:"2024-01-01T00:00:00Z"`
+	ID          uint      `json:"ID" example:"1"`
+	CreatedAt   time.Time `json:"CreatedAt" example:"2024-01-01T00:00:00Z"`
+	UpdatedAt   time.Time `json:"UpdatedAt" example:"2024-01-01T00:00:00Z"`
 	Email       string    `json:"email" example:"user@example.com"`
 	DisplayName string    `json:"display_name" example:"John Doe"`
 } // @name UserResponse

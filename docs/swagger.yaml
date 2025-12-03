@@ -153,7 +153,13 @@ definitions:
     type: object
   UserResponse:
     properties:
-      created_at:
+      CreatedAt:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      ID:
+        example: 1
+        type: integer
+      UpdatedAt:
         example: "2024-01-01T00:00:00Z"
         type: string
       display_name:
@@ -161,12 +167,6 @@ definitions:
         type: string
       email:
         example: user@example.com
-        type: string
-      id:
-        example: 1
-        type: integer
-      updated_at:
-        example: "2024-01-01T00:00:00Z"
         type: string
     type: object
 host: localhost:4030

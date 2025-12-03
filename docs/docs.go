@@ -651,7 +651,15 @@ const docTemplate = `{
         "UserResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "CreatedAt": {
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "ID": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "UpdatedAt": {
                     "type": "string",
                     "example": "2024-01-01T00:00:00Z"
                 },
@@ -662,14 +670,6 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "example": "user@example.com"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
                 }
             }
         }
