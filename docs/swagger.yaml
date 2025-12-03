@@ -383,6 +383,42 @@ paths:
       summary: Get current user information
       tags:
       - user
+  /user/{userId}/ducks:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all ducks owned by the specified user, ordered
+        by creation date
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's ducks
+          schema:
+            items:
+              $ref: '#/definitions/DuckResponse'
+            type: array
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get list of ducks for a specific user
+      tags:
+      - ducks
   /user/change-name:
     put:
       consumes:

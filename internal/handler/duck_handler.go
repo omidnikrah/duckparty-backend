@@ -144,3 +144,30 @@ func (h *DuckHandler) GetDucksList(c *gin.Context) {
 
 	c.JSON(http.StatusOK, ducks)
 }
+
+// GetUserDucks godoc
+// @Summary      Get list of ducks for a specific user
+// @Description  Returns a list of all ducks owned by the specified user, ordered by creation date
+// @Tags         ducks
+// @Accept       json
+// @Produce      json
+// @Param        userId   path      int  true  "User ID"
+// @Success      200      {array}   duck_dto.DuckResponse  "List of user's ducks"
+// @Failure      400      {object}  map[string]string  "Error message"
+// @Failure      500      {object}  map[string]string  "Error message"
+// @Router       /user/{userId}/ducks [get]
+func (h *DuckHandler) GetUserDucks(c *gin.Context) {
+	userId, err := strconv.ParseUint(c.Param("userId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	ducks, err := h.duckService.GetUserDucksList(uint(userId))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, ducks)
+}

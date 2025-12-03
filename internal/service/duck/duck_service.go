@@ -157,6 +157,15 @@ func (s *DuckService) GetDucksList() (*[]model.Duck, error) {
 	return &ducks, nil
 }
 
+func (s *DuckService) GetUserDucksList(userId uint) (*[]model.Duck, error) {
+	ducks := []model.Duck{}
+	if err := s.db.Preload("Owner").Order("created_at DESC").Find(&ducks).Where("owner_id = ?", userId).Error; err != nil {
+		return nil, err
+	}
+
+	return &ducks, nil
+}
+
 func updateReactionCounts(duck *model.Duck, reaction model.ReactionType, delta int64) {
 	switch reaction {
 	case model.ReactionLike:
