@@ -360,6 +360,29 @@ paths:
       summary: Get list of ducks
       tags:
       - ducks
+  /leaderboard:
+    get:
+      consumes:
+      - application/json
+      description: Returns the top 100 ducks sorted by rank (highest to lowest)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of top 100 ducks by rank
+          schema:
+            items:
+              $ref: '#/definitions/DuckResponse'
+            type: array
+        "500":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get ducks leaderboard
+      tags:
+      - ducks
   /user:
     get:
       consumes:

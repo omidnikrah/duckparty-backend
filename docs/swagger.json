@@ -287,6 +287,41 @@
                 }
             }
         },
+        "/leaderboard": {
+            "get": {
+                "description": "Returns the top 100 ducks sorted by rank (highest to lowest)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ducks"
+                ],
+                "summary": "Get ducks leaderboard",
+                "responses": {
+                    "200": {
+                        "description": "List of top 100 ducks by rank",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/DuckResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "get": {
                 "security": [

@@ -171,3 +171,22 @@ func (h *DuckHandler) GetUserDucks(c *gin.Context) {
 
 	c.JSON(http.StatusOK, ducks)
 }
+
+// GetDucksLeaderboard godoc
+// @Summary      Get ducks leaderboard
+// @Description  Returns the top 100 ducks sorted by rank (highest to lowest)
+// @Tags         ducks
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   duck_dto.DuckResponse  "List of top 100 ducks by rank"
+// @Failure      500  {object}  map[string]string  "Error message"
+// @Router       /leaderboard [get]
+func (h *DuckHandler) GetDucksLeaderboard(c *gin.Context) {
+	ducks, err := h.duckService.GetDucksLeaderboard()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, ducks)
+}
