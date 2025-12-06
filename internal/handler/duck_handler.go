@@ -190,3 +190,38 @@ func (h *DuckHandler) GetDucksLeaderboard(c *gin.Context) {
 
 	c.JSON(http.StatusOK, ducks)
 }
+
+// RemoveDuck godoc
+// @Summary      Remove a duck
+// @Description  Deletes a duck owned by the authenticated user
+// @Tags         ducks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        duckId   path      int  true  "Duck ID"
+// @Success      200      {object}  map[string]string  "Success message"
+// @Failure      400      {object}  map[string]string  "Invalid duck ID"
+// @Failure      404      {object}  map[string]string  "Duck not found"
+// @Failure      500      {object}  map[string]string  "Error message"
+// @Router       /duck/{duckId} [delete]
+func (h *DuckHandler) RemoveDuck(c *gin.Context) {
+	authUser, _ := middleware.GetAuthUser(c)
+	duckId, err := strconv.ParseUint(c.Param("duckId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid duck id"})
+		return
+	}
+
+	_, err = h.duckService.RemoveDuck(authUser.UserID, uint(duckId))
+	if err != nil {
+		switch {
+		case errors.Is(err, duckService.ErrDuckNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Duck removed successfully"})
+}

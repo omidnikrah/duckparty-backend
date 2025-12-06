@@ -282,6 +282,49 @@ paths:
       summary: Create a new duck
       tags:
       - ducks
+  /duck/{duckId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a duck owned by the authenticated user
+      parameters:
+      - description: Duck ID
+        in: path
+        name: duckId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid duck ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Duck not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove a duck
+      tags:
+      - ducks
   /duck/{duckId}/reaction/{reaction}:
     put:
       consumes:

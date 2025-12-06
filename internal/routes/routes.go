@@ -42,6 +42,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, sesClient *
 	v1Router.GET("/ducks", duckHandler.GetDucksList)
 	authenticated.POST("/duck", middleware.RateLimit(middleware.CreateRateLimit), duckHandler.CreateDuck)
 	authenticated.PUT("/duck/:duckId/reaction/:reaction", duckHandler.ReactionToDuck)
+	authenticated.DELETE("/duck/:duckId", duckHandler.RemoveDuck)
 
 	v1Router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{

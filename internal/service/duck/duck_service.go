@@ -176,6 +176,23 @@ func (s *DuckService) GetDucksLeaderboard() (*[]model.Duck, error) {
 	return &ducks, nil
 }
 
+func (s *DuckService) RemoveDuck(userId uint, duckId uint) (bool, error) {
+	duck := model.Duck{}
+
+	if err := s.db.Preload("Owner").Where("id = ? AND owner_id = ?", duckId, userId).First(&duck).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, ErrDuckNotFound
+		}
+		return false, err
+	}
+
+	if err := s.db.Delete(&duck).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func updateReactionCounts(duck *model.Duck, reaction model.ReactionType, delta int64) {
 	switch reaction {
 	case model.ReactionLike:
