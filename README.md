@@ -140,6 +140,10 @@ duckparty-backend/
 └── main.go              # Application entry point
 ```
 
+## 🚢 Deployment
+
+This project is deployed using [Coolify](https://coolify.io/).
+
 ---
 
 Made with ❤️‍🔥 for the duck community
