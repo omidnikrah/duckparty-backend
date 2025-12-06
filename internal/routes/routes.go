@@ -37,7 +37,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, sesClient *
 	authenticated.PUT("/user/change-name", userHandler.UpdateName)
 	authenticated.GET("/user", userHandler.GetMeUser)
 
-	v1Router.GET("/user/:userId/ducks", duckHandler.GetDucksList)
+	v1Router.GET("/user/:userId/ducks", duckHandler.GetUserDucks)
 	v1Router.GET("/leaderboard", duckHandler.GetDucksLeaderboard)
 	v1Router.GET("/ducks", duckHandler.GetDucksList)
 	authenticated.POST("/duck", middleware.RateLimit(middleware.CreateRateLimit), duckHandler.CreateDuck)
