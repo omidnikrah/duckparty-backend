@@ -159,7 +159,7 @@ func (s *DuckService) GetDucksList() (*[]model.Duck, error) {
 
 func (s *DuckService) GetUserDucksList(userId uint) (*[]model.Duck, error) {
 	ducks := []model.Duck{}
-	if err := s.db.Preload("Owner").Order("created_at DESC").Find(&ducks).Where("owner_id = ?", userId).Error; err != nil {
+	if err := s.db.Preload("Owner").Order("created_at DESC").Where("owner_id = ?", userId).Find(&ducks).Error; err != nil {
 		return nil, err
 	}
 
