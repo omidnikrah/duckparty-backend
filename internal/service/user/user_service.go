@@ -4,21 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/ses/types"
-	"github.com/aws/smithy-go"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/omidnikrah/duckparty-backend/internal/config"
 	"github.com/omidnikrah/duckparty-backend/internal/model"
 	"github.com/omidnikrah/duckparty-backend/internal/templates"
 	"github.com/omidnikrah/duckparty-backend/internal/utils"
 	"github.com/redis/go-redis/v9"
+	"github.com/resend/resend-go/v3"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -26,18 +21,17 @@ import (
 const (
 	authTokenTTL    = 30 * 24 * time.Hour // 30 days
 	otpEmailSubject = "DuckParty OTP Code"
-	otpEmailCharset = "UTF-8"
 )
 
 type UserService struct {
-	db        *gorm.DB
-	rdb       *redis.Client
-	config    *config.Config
-	sesClient *ses.Client
+	db           *gorm.DB
+	rdb          *redis.Client
+	config       *config.Config
+	resendClient *resend.Client
 }
 
-func NewService(db *gorm.DB, rdb *redis.Client, sesClient *ses.Client, config *config.Config) *UserService {
-	return &UserService{db: db, rdb: rdb, sesClient: sesClient, config: config}
+func NewService(db *gorm.DB, rdb *redis.Client, resendClient *resend.Client, config *config.Config) *UserService {
+	return &UserService{db: db, rdb: rdb, resendClient: resendClient, config: config}
 }
 
 func (s *UserService) GetOrCreateUserByEmail(email string, tx *gorm.DB) (*model.User, error) {
@@ -120,8 +114,6 @@ func (s *UserService) AuthenticateUser(email string, otp string, ctx context.Con
 }
 
 func (s *UserService) sendOtpEmail(ctx context.Context, email string, otpCode int) error {
-	logger := slog.Default().With("email", email)
-
 	htmlBody, err := templates.GenerateOTPEmailHTML(otpCode)
 	if err != nil {
 		return fmt.Errorf("failed to render HTML email: %w", err)
@@ -132,64 +124,17 @@ func (s *UserService) sendOtpEmail(ctx context.Context, email string, otpCode in
 		return fmt.Errorf("failed to render text email: %w", err)
 	}
 
-	input := &ses.SendEmailInput{
-		Destination: &types.Destination{
-			ToAddresses: []string{email},
-		},
-		Message: &types.Message{
-			Body: &types.Body{
-				Html: &types.Content{
-					Charset: aws.String(otpEmailCharset),
-					Data:    aws.String(htmlBody),
-				},
-				Text: &types.Content{
-					Charset: aws.String(otpEmailCharset),
-					Data:    aws.String(textBody),
-				},
-			},
-			Subject: &types.Content{
-				Charset: aws.String(otpEmailCharset),
-				Data:    aws.String(otpEmailSubject),
-			},
-		},
-		Source: aws.String(s.config.AuthSenderEmail),
+	params := &resend.SendEmailRequest{
+		From:    s.config.AuthSenderEmail,
+		To:      []string{email},
+		Subject: otpEmailSubject,
+		Html:    htmlBody,
+		Text:    textBody,
 	}
 
-	_, err = s.sesClient.SendEmail(ctx, input)
+	_, err = s.resendClient.Emails.Send(params)
 	if err != nil {
-		var apiErr *types.MessageRejected
-		var domainErr *types.MailFromDomainNotVerifiedException
-		var configErr *types.ConfigurationSetDoesNotExistException
-
-		var userErr error
-
-		switch {
-		case errors.As(err, &apiErr):
-			logger.Error("SES message rejected", "error", err.Error())
-			errMsg := err.Error()
-			if strings.Contains(errMsg, "not verified") {
-				userErr = errors.New("email address could not be verified. Please check your email address and try again")
-			} else if strings.Contains(errMsg, "rate") || strings.Contains(errMsg, "throttl") {
-				userErr = errors.New("too many requests. Please try again in a few minutes")
-			} else {
-				userErr = errors.New("unable to send email. Please check your email address and try again")
-			}
-		case errors.As(err, &domainErr):
-			logger.Error("SES sender domain not verified", "error", err.Error())
-			userErr = errors.New("email service is temporarily unavailable. Please try again later")
-		case errors.As(err, &configErr):
-			logger.Error("SES configuration set does not exist", "error", err.Error())
-			userErr = errors.New("email service is temporarily unavailable. Please try again later")
-		default:
-			if ae, ok := err.(*smithy.OperationError); ok {
-				logger.Error("SES send email failed", "service", ae.Service(), "operation", ae.Operation(), "error", err.Error())
-			} else {
-				logger.Error("SES send email failed", "error", err.Error())
-			}
-			userErr = errors.New("unable to send email. Please try again later")
-		}
-
-		return userErr
+		return errors.New("unable to send email. Please try again later")
 	}
 
 	return nil

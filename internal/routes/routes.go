@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/gin-gonic/gin"
 	_ "github.com/omidnikrah/duckparty-backend/docs"
 	"github.com/omidnikrah/duckparty-backend/internal/config"
@@ -11,13 +10,14 @@ import (
 	userService "github.com/omidnikrah/duckparty-backend/internal/service/user"
 	"github.com/omidnikrah/duckparty-backend/internal/storage"
 	"github.com/redis/go-redis/v9"
+	"github.com/resend/resend-go/v3"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, sesClient *ses.Client, s3Storage *storage.S3Storage, config *config.Config) {
-	userSvc := userService.NewService(db, rdb, sesClient, config)
+func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, resendClient *resend.Client, s3Storage *storage.S3Storage, config *config.Config) {
+	userSvc := userService.NewService(db, rdb, resendClient, config)
 	duckSvc := duckService.NewService(db, userSvc, s3Storage)
 
 	userHandler := handler.NewUserHandler(userSvc)

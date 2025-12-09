@@ -28,10 +28,7 @@ func Setup() {
 	rdb := client.NewRedisClient(config)
 	defer rdb.Close()
 
-	sesClient, err := client.NewSESClient(config)
-	if err != nil {
-		panic("failed to initialize SES client: " + err.Error())
-	}
+	resendClient := client.NewResendClient(config)
 
 	s3Storage, err := storage.NewS3Storage(config)
 	if err != nil {
@@ -55,7 +52,7 @@ func Setup() {
 	corsConfig.AddAllowHeaders("Authorization")
 	router.Use(cors.New(corsConfig))
 
-	routes.SetupRoutes(router, db, rdb, sesClient, s3Storage, config)
+	routes.SetupRoutes(router, db, rdb, resendClient, s3Storage, config)
 
 	router.Run(":" + config.AppPort)
 }
