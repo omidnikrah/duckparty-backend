@@ -8,6 +8,7 @@ import (
 	userService "github.com/omidnikrah/duckparty-backend/internal/service/user"
 	"github.com/omidnikrah/duckparty-backend/internal/storage"
 	"github.com/omidnikrah/duckparty-backend/internal/types"
+	"github.com/omidnikrah/duckparty-backend/internal/websocket"
 	"gorm.io/gorm"
 )
 
@@ -20,13 +21,15 @@ type DuckService struct {
 	db          *gorm.DB
 	userService *userService.UserService
 	storage     *storage.S3Storage
+	broadcaster *websocket.SocketBroadcaster
 }
 
-func NewService(db *gorm.DB, userService *userService.UserService, s3Storage *storage.S3Storage) *DuckService {
+func NewService(db *gorm.DB, userService *userService.UserService, s3Storage *storage.S3Storage, broadcaster *websocket.SocketBroadcaster) *DuckService {
 	return &DuckService{
 		db:          db,
 		userService: userService,
 		storage:     s3Storage,
+		broadcaster: broadcaster,
 	}
 }
 
@@ -82,6 +85,11 @@ func (s *DuckService) CreateDuck(req CreateDuckRequest) (*model.Duck, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if s.broadcaster != nil {
+		notification := websocket.NewNotification(websocket.NotificationTypeNewDuck, newDuck)
+		s.broadcaster.Broadcast(notification)
 	}
 
 	return &newDuck, nil

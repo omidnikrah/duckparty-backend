@@ -9,6 +9,7 @@ import (
 	duckService "github.com/omidnikrah/duckparty-backend/internal/service/duck"
 	userService "github.com/omidnikrah/duckparty-backend/internal/service/user"
 	"github.com/omidnikrah/duckparty-backend/internal/storage"
+	ws "github.com/omidnikrah/duckparty-backend/internal/websocket"
 	"github.com/redis/go-redis/v9"
 	"github.com/resend/resend-go/v3"
 	swaggerFiles "github.com/swaggo/files"
@@ -16,14 +17,17 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, resendClient *resend.Client, s3Storage *storage.S3Storage, config *config.Config) {
+func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, resendClient *resend.Client, s3Storage *storage.S3Storage, config *config.Config, broadcaster *ws.SocketBroadcaster) {
 	userSvc := userService.NewService(db, rdb, resendClient, config)
-	duckSvc := duckService.NewService(db, userSvc, s3Storage)
+	duckSvc := duckService.NewService(db, userSvc, s3Storage, broadcaster)
 
 	userHandler := handler.NewUserHandler(userSvc)
 	duckHandler := handler.NewDuckHandler(duckSvc)
+	wsHandler := handler.NewWebSocketHandler(broadcaster)
 
 	apiRouter := router.Group(config.ApiPrefix)
+
+	router.GET("/ws", wsHandler.HandleWebSocket)
 
 	v1Router := apiRouter.Group("/v1")
 	v1Router.Use(middleware.ValidationErrorMiddleware())

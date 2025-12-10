@@ -11,6 +11,7 @@ import (
 	"github.com/omidnikrah/duckparty-backend/internal/database"
 	"github.com/omidnikrah/duckparty-backend/internal/routes"
 	"github.com/omidnikrah/duckparty-backend/internal/storage"
+	ws "github.com/omidnikrah/duckparty-backend/internal/websocket"
 )
 
 func Setup() {
@@ -52,7 +53,9 @@ func Setup() {
 	corsConfig.AddAllowHeaders("Authorization")
 	router.Use(cors.New(corsConfig))
 
-	routes.SetupRoutes(router, db, rdb, resendClient, s3Storage, config)
+	broadcaster := ws.NewSocketBroadcaster()
+
+	routes.SetupRoutes(router, db, rdb, resendClient, s3Storage, config, broadcaster)
 
 	router.Run(":" + config.AppPort)
 }
