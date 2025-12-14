@@ -49,7 +49,7 @@ func (h *DuckHandler) CreateDuck(c *gin.Context) {
 	}
 
 	if name == "" || appearanceJSON == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and appearance are required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name and appearance are required"})
 		return
 	}
 
@@ -69,6 +69,7 @@ func (h *DuckHandler) CreateDuck(c *gin.Context) {
 	req := duckService.CreateDuckRequest{
 		Name:           name,
 		Email:          user.Email,
+		OwnerId:        user.UserID,
 		AppearanceJSON: appearanceJSON,
 		ImageData:      fileContent,
 	}

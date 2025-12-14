@@ -31,6 +31,13 @@ definitions:
       user:
         $ref: '#/definitions/UserResponse'
     type: object
+  CreateAnonymousUserRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   DuckAppearance:
     properties:
       accessories:
@@ -129,6 +136,13 @@ definitions:
     x-enum-varnames:
     - ReactionLike
     - ReactionDislike
+  SetEmailRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   SkinType:
     enum:
     - giraffe
@@ -206,6 +220,35 @@ paths:
               type: string
             type: object
       summary: Send OTP to user email
+      tags:
+      - auth
+  /auth/anonymous:
+    post:
+      consumes:
+      - application/json
+      description: Creates an anonymous user with a display name and returns a JWT
+        token for immediate use
+      parameters:
+      - description: User display name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateAnonymousUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User and token
+          schema:
+            $ref: '#/definitions/AuthenticateResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create anonymous user and get token
       tags:
       - auth
   /auth/verify:
@@ -515,6 +558,90 @@ paths:
       summary: Update user display name
       tags:
       - user
+  /user/set-email:
+    post:
+      consumes:
+      - application/json
+      description: Sends an OTP to the new email address for verification. Use /user/verify-email
+        to verify and set the email.
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/SetEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Send OTP to new email address
+      tags:
+      - user
+  /user/verify-set-email:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the OTP code and sets the email address for the authenticated
+        user. Returns updated user and new token.
+      parameters:
+      - description: Email and OTP code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/AuthenticateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user and new token
+          schema:
+            $ref: '#/definitions/AuthenticateResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Verify email change with OTP
+      tags:
+      - user
+  /ws:
+    get:
+      consumes:
+      - application/json
+      description: Establishes a WebSocket connection to receive real-time notifications
+        when new ducks are added
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: WebSocket connection for real-time duck notifications
+      tags:
+      - websocket
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

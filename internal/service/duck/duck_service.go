@@ -36,6 +36,7 @@ func NewService(db *gorm.DB, userService *userService.UserService, s3Storage *st
 type CreateDuckRequest struct {
 	Name           string
 	Email          string
+	OwnerId        uint
 	AppearanceJSON string
 	ImageData      []byte
 }
@@ -60,7 +61,15 @@ func (s *DuckService) CreateDuck(req CreateDuckRequest) (*model.Duck, error) {
 	var newDuck model.Duck
 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
-		user, err := s.userService.GetOrCreateUserByEmail(req.Email, tx)
+		var user *model.User
+		var err error
+
+		if req.Email != "" {
+			user, err = s.userService.GetOrCreateUserByEmail(req.Email, tx)
+		} else {
+			user, err = s.userService.GetUser(req.OwnerId)
+		}
+
 		if err != nil {
 			return err
 		}

@@ -24,6 +24,14 @@ type UpdateNameDTO struct {
 	Name string `json:"name" binding:"required"`
 } // @name UpdateNameRequest
 
+type SetEmailDTO struct {
+	Email string `json:"email" binding:"required,email"`
+} // @name SetEmailRequest
+
+type CreateAnonymousUserDTO struct {
+	Name string `json:"name" binding:"required"`
+} // @name CreateAnonymousUserRequest
+
 type UserInfoResponse struct {
 	User UserResponse `json:"user"`
 } // @name UserInfoResponse

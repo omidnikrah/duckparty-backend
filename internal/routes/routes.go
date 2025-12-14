@@ -33,12 +33,15 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, resendClien
 	v1Router.Use(middleware.ValidationErrorMiddleware())
 
 	v1Router.POST("/auth", middleware.RateLimit(middleware.AuthRateLimit), userHandler.Authenticate)
-	v1Router.POST("/auth/verify", userHandler.AuthenticateVerify)
+	v1Router.POST("/auth/verify", middleware.RateLimit(middleware.AuthRateLimit), userHandler.AuthenticateVerify)
+	v1Router.POST("/auth/anonymous", middleware.RateLimit(middleware.AuthRateLimit), userHandler.CreateAnonymousUser)
 
 	authenticated := v1Router.Group("/")
 	authenticated.Use(middleware.AuthMiddleware(config))
 
 	authenticated.PUT("/user/change-name", userHandler.UpdateName)
+	authenticated.POST("/user/set-email", middleware.RateLimit(middleware.AuthRateLimit), userHandler.SetEmail)
+	authenticated.POST("/user/verify-set-email", middleware.RateLimit(middleware.AuthRateLimit), userHandler.VerifySetEmail)
 	authenticated.GET("/user", userHandler.GetMeUser)
 
 	v1Router.GET("/user/:userId/ducks", duckHandler.GetUserDucks)

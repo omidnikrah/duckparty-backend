@@ -12,8 +12,8 @@ import (
 var rateLimitStore = memory.NewStore()
 
 var (
-	AuthRateLimit   = limiter.Rate{Period: 1 * time.Minute, Limit: 2}
-	CreateRateLimit = limiter.Rate{Period: 1 * time.Minute, Limit: 2}
+	AuthRateLimit   = limiter.Rate{Period: 1 * time.Minute, Limit: 10}
+	CreateRateLimit = limiter.Rate{Period: 1 * time.Minute, Limit: 10}
 )
 
 func RateLimit(rate limiter.Rate) gin.HandlerFunc {

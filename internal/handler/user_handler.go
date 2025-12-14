@@ -106,6 +106,100 @@ func (h *UserHandler) UpdateName(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": updatedUser})
 }
 
+// SetEmail godoc
+// @Summary      Send OTP to new email address
+// @Description  Sends an OTP to the new email address for verification. Use /user/verify-email to verify and set the email.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request  body      user_dto.SetEmailDTO  true  "Email address"
+// @Success      200      {object}  map[string]string            "Success message"
+// @Failure      400      {object}  map[string]string            "Error message"
+// @Router       /user/set-email [post]
+func (h *UserHandler) SetEmail(c *gin.Context) {
+	var requestBody user_dto.SetEmailDTO
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.Error(err)
+		return
+	}
+
+	authUser, _ := middleware.GetAuthUser(c)
+
+	if err := h.userService.SetEmail(requestBody.Email, authUser.UserID, c.Request.Context()); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "OTP sent to email!",
+	})
+}
+
+// VerifyEmailChange godoc
+// @Summary      Verify email change with OTP
+// @Description  Verifies the OTP code and sets the email address for the authenticated user. Returns updated user and new token.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request  body      user_dto.AuthenticateUserDTO  true  "Email and OTP code"
+// @Success      200      {object}  user_dto.AuthenticateResponse  "Updated user and new token"
+// @Failure      400      {object}  map[string]string              "Error message"
+// @Router       /user/verify-set-email [post]
+func (h *UserHandler) VerifySetEmail(c *gin.Context) {
+	var requestBody user_dto.AuthenticateUserDTO
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.Error(err)
+		return
+	}
+
+	authUser, _ := middleware.GetAuthUser(c)
+
+	updatedUser, token, err := h.userService.VerifySetEmail(requestBody.Email, requestBody.OTP, authUser.UserID, c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user":  updatedUser,
+		"token": token,
+	})
+}
+
+// CreateAnonymousUser godoc
+// @Summary      Create anonymous user and get token
+// @Description  Creates an anonymous user with a display name and returns a JWT token for immediate use
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      user_dto.CreateAnonymousUserDTO  true  "User display name"
+// @Success      200      {object}  user_dto.AuthenticateResponse      "User and token"
+// @Failure      400      {object}  map[string]string                  "Error message"
+// @Router       /auth/anonymous [post]
+func (h *UserHandler) CreateAnonymousUser(c *gin.Context) {
+	var requestBody user_dto.CreateAnonymousUserDTO
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.Error(err)
+		return
+	}
+
+	user, token, err := h.userService.CreateAnonymousUser(requestBody.Name)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user":  user,
+		"token": token,
+	})
+}
+
 // GetMeUser godoc
 // @Summary      Get current user information
 // @Description  Returns the information of the currently authenticated user
