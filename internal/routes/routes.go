@@ -17,9 +17,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, resendClient *resend.Client, s3Storage *storage.S3Storage, config *config.Config, broadcaster *ws.SocketBroadcaster) {
+func SetupRoutes(router *gin.Engine, db *gorm.DB, rdb *redis.Client, resendClient *resend.Client, r2Storage *storage.R2Storage, config *config.Config, broadcaster *ws.SocketBroadcaster) {
 	userSvc := userService.NewService(db, rdb, resendClient, config)
-	duckSvc := duckService.NewService(db, userSvc, s3Storage, broadcaster)
+	duckSvc := duckService.NewService(db, userSvc, r2Storage, broadcaster)
 
 	userHandler := handler.NewUserHandler(userSvc)
 	duckHandler := handler.NewDuckHandler(duckSvc)

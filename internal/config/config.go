@@ -13,11 +13,11 @@ type Config struct {
 	DBUser             string
 	DBPassword         string
 	DBName             string
-	S3Bucket           string
-	S3Region           string
-	S3BaseURL          string
-	AWSAccessKeyID     string
-	AWSSecretAccessKey string
+	R2AccountID        string
+	R2Bucket           string
+	R2BaseURL          string
+	R2AccessKeyID      string
+	R2SecretAccessKey  string
 	RedisHost          string
 	RedisPassword      string
 	RedisPort          string
@@ -38,11 +38,11 @@ func LoadConfig() (*Config, error) {
 		DBUser:             os.Getenv("DB_USER"),
 		DBPassword:         os.Getenv("DB_PASSWORD"),
 		DBName:             os.Getenv("DB_NAME"),
-		S3Bucket:           os.Getenv("S3_BUCKET"),
-		S3Region:           os.Getenv("S3_REGION"),
-		S3BaseURL:          os.Getenv("S3_BASE_URL"),
-		AWSAccessKeyID:     os.Getenv("AWS_ACCESS_KEY_ID"),
-		AWSSecretAccessKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		R2AccountID:        os.Getenv("R2_ACCOUNT_ID"),
+		R2Bucket:           os.Getenv("R2_BUCKET"),
+		R2BaseURL:          os.Getenv("R2_BASE_URL"),
+		R2AccessKeyID:      os.Getenv("R2_ACCESS_KEY_ID"),
+		R2SecretAccessKey:  os.Getenv("R2_SECRET_ACCESS_KEY"),
 		RedisHost:          os.Getenv("REDIS_HOST"),
 		RedisPort:          os.Getenv("REDIS_PORT"),
 		RedisPassword:      os.Getenv("REDIS_PASSWORD"),

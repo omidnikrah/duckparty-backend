@@ -16,8 +16,8 @@ This backend powers the DuckParty frontend application. For frontend setup and d
 - **Duck Management** - Create, customize, and manage duck collections
 - **Leaderboard System** - Ranking based on reactions
 - **Reaction System** - Like/dislike ducks with rate limiting
-- **Image Storage** - AWS S3 integration for duck image hosting
-- **Email Service** - AWS SES for OTP delivery
+- **Image Storage** - Cloudflare R2 integration for duck image hosting
+- **Email Service** - Resend for OTP delivery
 - **API Documentation** - Swagger/OpenAPI documentation
 - **Scheduled Tasks** - Cron jobs for automated operations
 
@@ -28,8 +28,8 @@ This backend powers the DuckParty frontend application. For frontend setup and d
 - **[GORM](https://gorm.io/)** - ORM for database operations
 - **[PostgreSQL](https://www.postgresql.org/)** - Relational database
 - **[Redis](https://redis.io/)** - Caching and rate limiting
-- **[AWS S3](https://aws.amazon.com/s3/)** - Object storage for images
-- **[AWS SES](https://aws.amazon.com/ses/)** - Email delivery service
+- **[Cloudflare R2](https://developers.cloudflare.com/r2/)** - Object storage for images
+- **[Resend](https://resend.com/)** - Email delivery service
 - **[JWT](https://jwt.io/)** - Token-based authentication
 - **[Swagger](https://swagger.io/)** - API documentation
 
@@ -40,7 +40,7 @@ This backend powers the DuckParty frontend application. For frontend setup and d
 - [Go](https://go.dev/dl/) 1.24.4 or higher
 - [PostgreSQL](https://www.postgresql.org/download/) 16 or higher
 - [Redis](https://redis.io/download) 7 or higher
-- AWS account with S3 and SES configured
+- Cloudflare account with an R2 bucket configured
 - Docker and Docker Compose (optional, for containerized setup)
 
 ### Installation
@@ -81,18 +81,19 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=your_redis_password
 
-# AWS
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-S3_BUCKET=your_s3_bucket
-S3_REGION=your_s3_region
-S3_BASE_URL=your_s3_base_url
+# Cloudflare R2
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_key
+R2_BUCKET=your_r2_bucket
+R2_BASE_URL=your_r2_public_base_url
 
 # JWT
 JWT_SECRET=your_jwt_secret_key
 
 # Email
-AUTH_SENDER_EMAIL=your_verified_ses_email
+AUTH_SENDER_EMAIL=your_verified_resend_email
+RESEND_API_KEY=your_resend_api_key
 ```
 
 ### Docker Setup
@@ -130,7 +131,7 @@ duckparty-backend/
 │   ├── model/           # Database models
 │   ├── routes/          # API route definitions
 │   ├── service/         # Business logic layer
-│   ├── storage/         # Storage abstractions (S3)
+│   ├── storage/         # Storage abstractions (Cloudflare R2)
 │   ├── templates/       # Email templates
 │   ├── types/           # Type definitions
 │   └── utils/           # Utility functions

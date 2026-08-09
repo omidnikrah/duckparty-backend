@@ -20,15 +20,15 @@ var (
 type DuckService struct {
 	db          *gorm.DB
 	userService *userService.UserService
-	storage     *storage.S3Storage
+	storage     *storage.R2Storage
 	broadcaster *websocket.SocketBroadcaster
 }
 
-func NewService(db *gorm.DB, userService *userService.UserService, s3Storage *storage.S3Storage, broadcaster *websocket.SocketBroadcaster) *DuckService {
+func NewService(db *gorm.DB, userService *userService.UserService, r2Storage *storage.R2Storage, broadcaster *websocket.SocketBroadcaster) *DuckService {
 	return &DuckService{
 		db:          db,
 		userService: userService,
-		storage:     s3Storage,
+		storage:     r2Storage,
 		broadcaster: broadcaster,
 	}
 }

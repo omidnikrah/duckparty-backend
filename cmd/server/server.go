@@ -31,9 +31,9 @@ func Setup() {
 
 	resendClient := client.NewResendClient(config)
 
-	s3Storage, err := storage.NewS3Storage(config)
+	r2Storage, err := storage.NewR2Storage(config)
 	if err != nil {
-		panic("failed to initialize S3 storage: " + err.Error())
+		panic("failed to initialize R2 storage: " + err.Error())
 	}
 
 	cronScheduler, err := client.NewCron(context.Background(), db, slog.Default())
@@ -55,7 +55,7 @@ func Setup() {
 
 	broadcaster := ws.NewSocketBroadcaster()
 
-	routes.SetupRoutes(router, db, rdb, resendClient, s3Storage, config, broadcaster)
+	routes.SetupRoutes(router, db, rdb, resendClient, r2Storage, config, broadcaster)
 
 	router.Run(":" + config.AppPort)
 }
